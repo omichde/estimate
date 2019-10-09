@@ -9,56 +9,67 @@
 import UIKit
 
 class DataViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-
+	
 	@IBOutlet weak var dataButton: UIButton!
 	var dataObject: String = ""
-
-	override func viewWillAppear(animated: Bool) {
+	
+	override func viewWillAppear(_ animated: Bool) {
 		super.viewWillAppear(animated)
-
-		self.dataButton.layer.borderColor = UIColor.whiteColor().CGColor
-
+		
 		let fontHeight = CGFloat(arc4random_uniform(200)+100)
-		let fontFamilies = UIFont.familyNames()
+		let fontFamilies = UIFont.familyNames
 		var fontNames = [String]()
 		repeat {
-			fontNames = UIFont.fontNamesForFamilyName(fontFamilies[Int(arc4random_uniform(UInt32(fontFamilies.count)))])
+			fontNames = UIFont.fontNames(forFamilyName: fontFamilies[Int(arc4random_uniform(UInt32(fontFamilies.count)))])
 		} while fontNames.count < 1
 		let fontName = fontNames[Int(arc4random_uniform(UInt32(fontNames.count)))]
-		let fontColor = UIColor(colorLiteralRed: Float(arc4random_uniform(256))/256,
-		                        green: Float(arc4random_uniform(256))/256,
-		                        blue: Float(arc4random_uniform(256))/256,
-		                        alpha: 1)
-		let paragraph = NSMutableParagraphStyle.defaultParagraphStyle().mutableCopy() as! NSMutableParagraphStyle
-		paragraph.alignment = .Center
-		paragraph.lineBreakMode = .ByCharWrapping
-		let attributes:[String:AnyObject] = [NSFontAttributeName: UIFont(name: fontName, size: fontHeight)!,
-		                                     NSParagraphStyleAttributeName: paragraph,
-		                                     NSForegroundColorAttributeName: fontColor,
-		                                     NSStrokeWidthAttributeName: -1,
-		                                     NSStrokeColorAttributeName: UIColor.blackColor()]
+		let fontColor = UIColor(red:CGFloat(arc4random_uniform(128)+128)/256,
+														green: CGFloat(arc4random_uniform(128)+128)/256,
+														blue: CGFloat(arc4random_uniform(128)+128)/256,
+														alpha: 1)
+		let paragraph = NSMutableParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle
+		paragraph.alignment = .center
+		paragraph.lineBreakMode = .byCharWrapping
+		let attributes:[NSAttributedString.Key:AnyObject] = [.font: UIFont(name: fontName, size: fontHeight)!,
+																												 .paragraphStyle: paragraph,
+																												 .foregroundColor: fontColor,
+																												 .strokeWidth: -1 as AnyObject,
+																												 .strokeColor: UIColor.black]
 		let attrString = NSAttributedString(string: dataObject, attributes: attributes)
-		self.dataButton.setAttributedTitle(attrString, forState: .Normal)
-		let data = NSUserDefaults.standardUserDefaults().objectForKey("image") as? NSData
-		if (data != nil) {
-			let image = UIImage(data: data!)
-			self.dataButton.setBackgroundImage(image, forState: .Normal)
+		dataButton.setAttributedTitle(attrString, for: .normal)
+		if let data = UserDefaults.standard.object(forKey: "image") as? Data {
+			let image = UIImage(data: data)
+			dataButton.setBackgroundImage(image, for: .normal)
 		}
 	}
-
-	@IBAction func selectPhoto(sender: UIButton) {
-		guard UIImagePickerController.isSourceTypeAvailable(.Camera) else { return }
+	
+	@IBAction func selectPhoto(_ sender: UIButton) {
+		guard UIImagePickerController.isSourceTypeAvailable(.camera) else { return }
+		
 		let picker = UIImagePickerController()
 		picker.delegate = self
-		picker.sourceType = .Camera
-		presentViewController(picker, animated: true) { }
+		picker.sourceType = .camera
+		present(picker, animated: true) { }
 	}
+	
+	func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+		// Local variable inserted by Swift 4.2 migrator.
+		let info = convertFromUIImagePickerControllerInfoKeyDictionary(info)
+		
+		guard let image = info[convertFromUIImagePickerControllerInfoKey(UIImagePickerController.InfoKey.originalImage)] as? UIImage else { return }
+		let data = image.jpegData(compressionQuality: 0.9)
+		UserDefaults.standard.set(data, forKey: "image")
+		dataButton.setBackgroundImage(image, for: .normal)
+		picker.dismiss(animated: true)
+	}
+}
 
-	func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
-		guard let image = info[UIImagePickerControllerOriginalImage] as? UIImage else { return }
-		let data = UIImageJPEGRepresentation(image, 0.9)
-		NSUserDefaults.standardUserDefaults().setObject(data, forKey: "image")
-		self.dataButton.setBackgroundImage(image, forState: .Normal)
-		picker.dismissViewControllerAnimated(true) { }
-	}
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromUIImagePickerControllerInfoKeyDictionary(_ input: [UIImagePickerController.InfoKey: Any]) -> [String: Any] {
+	return Dictionary(uniqueKeysWithValues: input.map {key, value in (key.rawValue, value)})
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromUIImagePickerControllerInfoKey(_ input: UIImagePickerController.InfoKey) -> String {
+	return input.rawValue
 }

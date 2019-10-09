@@ -10,23 +10,18 @@ import UIKit
 
 class RootPageViewController: UIPageViewController, UIPageViewControllerDelegate {
 
+	lazy var modelController: ModelController = {
+		return ModelController()
+	}()
+
 	override func viewDidLoad() {
 		super.viewDidLoad()
 
-		self.delegate = self
-		let startingViewController: DataViewController = self.modelController.viewControllerAtIndex(0, storyboard: self.storyboard!)!
+		delegate = self
+		let startingViewController: DataViewController = modelController.viewControllerAtIndex(0, storyboard: self.storyboard!)!
 		let viewControllers = [startingViewController]
-		self.setViewControllers(viewControllers, direction: .Forward, animated: false, completion: {done in })
-		self.dataSource = self.modelController
+		self.setViewControllers(viewControllers, direction: .forward, animated: false, completion: {done in })
+		self.dataSource = modelController
 	}
-
-	var modelController: ModelController {
-		if _modelController == nil {
-		    _modelController = ModelController()
-		}
-		return _modelController!
-	}
-
-	var _modelController: ModelController? = nil
 
 }
